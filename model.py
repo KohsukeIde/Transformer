@@ -33,7 +33,7 @@ class FeedForwardBlock(nn.Module):
 
     def __init__(self, d_model: int, d_ff: int, dropout: float) -> None:
         """
-        Initializes a FeedForwardBlock.  It consists of two linear transformations with a ReLU activation in between, 
+        Initializes a FeedForwardBlock. It consists of two linear transformations with a ReLU activation in between, 
         as per the original Transformer model specification. Dropout is applied after the first activation function 
         to prevent overfitting.
 
@@ -118,18 +118,44 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 class ResidualConnection(nn.Module):
-    
         def __init__(self, features: int, dropout: float) -> None:
+            """
+            This module applies a sublayer to its input, followed by layer normalization, dropout,
+            and finally adds the result to the original input. This enabling training 
+            of deep networks by allowing gradients to flow through the network more effectively.
+
+            Args:
+                features (int): The number of features (dimensions) in the input and output.
+                dropout (float): The dropout rate to use after applying the sublayer function.
+            """
             super().__init__()
             self.dropout = nn.Dropout(dropout)
             self.norm = LayerNormalization(features)
     
         def forward(self, x, sublayer):
+            # many implementation takes norm before sublayer
             return x + self.dropout(sublayer(self.norm(x)))
 
 class MultiHeadAttentionBlock(nn.Module):
 
     def __init__(self, d_model: int, h: int, dropout: float) -> None:
+        """
+        This block allows the model to jointly attend to information from different representation subspaces 
+        at different positions. With this mechanism, the model can capture various aspects of the data in 
+        parallel, improving its ability to learn complex patterns.
+
+        Args:
+            d_model (int): The dimensionality of the input and output vectors of the Transformer model.
+            
+            h (int): The number of attention heads. Multi-head attention allows the model to simultaneously 
+                     process the input data in different representation subspaces, improving the learning capacity.
+            dropout (float): The dropout rate applied to the attention scores. 
+
+        Raises:
+            AssertionError: If `d_model` is not divisible by `h`, an assertion error is raised. This is because 
+                            the dimensionality of each head's output (`d_k`) is calculated as `d_model // h`, 
+                            and it must be an integer.
+        """
         super().__init__()
         self.d_model = d_model # Embedding vector size
         self.h = h # Number of heads
@@ -145,6 +171,22 @@ class MultiHeadAttentionBlock(nn.Module):
 
     @staticmethod
     def attention(query, key, value, mask, dropout: nn.Dropout):
+        """
+        Computes the scaled dot-product attention.
+
+        Args:
+            query, key, value (Tensor): Tensors containing the query, key, and value vectors. These tensors 
+                                        have shapes `(batch, h, seq_len, d_k)` where `batch` is the batch size, 
+                                        `h` is the number of heads, `seq_len` is the sequence length, and `d_k` 
+                                        is the dimension of each head's output.
+            mask (Tensor): The mask tensor to apply to the attention scores, preventing attention to certain positions.
+            dropout (nn.Dropout): The dropout layer to apply to the attention scores.
+
+        Returns:
+            Tuple[Tensor, Tensor]: A tuple containing the attention output and the attention scores. The attention 
+                                   output has shape `(batch, h, seq_len, d_k)`, and the attention scores tensor has 
+                                    shape `(batch, h, seq_len, seq_len)`.
+        """
         d_k = query.shape[-1]
         # Just apply the formula from the paper
         # (batch, h, seq_len, d_k) --> (batch, h, seq_len, seq_len)
