@@ -277,6 +277,16 @@ class Decoder(nn.Module):
 class ProjectionLayer(nn.Module):
 
     def __init__(self, d_model, vocab_size) -> None:
+        """
+        Initializes the ProjectionLayer which is responsible for projecting the decoder's output to the vocabulary space.
+        This layer converts the decoder output, which has the same dimension as the model (d_model), into a space where
+        each dimension corresponds to a word in the vocabulary (vocab_size). Its output is used to calculate the probability 
+        distribution over the vocabulary for each position in the sequence.
+
+        Args:
+            d_model (int): The dimensionality of the input tensor, typically the size of the model's embeddings.
+            vocab_size (int): The size of the vocabulary, defining the dimensionality of the output tensor.
+        """
         super().__init__()
         self.proj = nn.Linear(d_model, vocab_size)
 
