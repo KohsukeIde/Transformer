@@ -184,7 +184,7 @@ def train_model(config):
     if (device == 'cuda'):
         print(f"Device name: {torch.cuda.get_device_name(device.index)}")
         print(f"Device memory: {torch.cuda.get_device_properties(device.index).total_memory / 1024 ** 3} GB")
-    elif (device == 'mps'):
+    elif (device == 'mps'): # currently not supported
         print(f"Device name: <mps>")
     device = torch.device(device)
 
